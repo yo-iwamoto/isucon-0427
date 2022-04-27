@@ -203,11 +203,6 @@ async function getPlaylistByUlid(db: mysql.Connection, playlistUlid: string): Pr
   return row;
 }
 
-async function getPlaylistById(db: mysql.Connection, playlistId: number): Promise<PlaylistRow | undefined> {
-  const [[row]] = await db.query<PlaylistRow[]>('SELECT * FROM playlist WHERE `id` = ?', [playlistId]);
-  return row;
-}
-
 async function getSongByUlid(db: mysql.Connection, songUlid: string): Promise<SongRow | undefined> {
   const [[result]] = await db.query<SongRow[]>('SELECT * FROM song WHERE `ulid` = ?', [songUlid]);
   return result;
