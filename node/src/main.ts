@@ -336,7 +336,7 @@ async function getCreatedPlaylistSummariesByUserAccount(
   userAccount: string
 ): Promise<Playlist[]> {
   const [playlists] = await db.query<PlaylistRow[]>(
-    'SELECT * FROM playlist where user_account = ? ORDER BY created_at DESC LIMIT 100',
+    'SELECT id, ulid, name, user_account, is_public, created_at, updated_at FROM playlist WHERE user_account = ? ORDER BY created_at DESC LIMIT 100',
     [userAccount]
   );
   if (!playlists.length) return [];
