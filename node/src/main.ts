@@ -69,6 +69,9 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      maxAge: 1 * 60 * 1000,
+    },
   })
 );
 app.use(partials());
