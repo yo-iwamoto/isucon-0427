@@ -32,7 +32,6 @@ declare module 'express-session' {
 }
 
 const sessionCookieName = 'listen80_session'
-const publicPath = './public'
 const dbConfig = {
   host: process.env['ISUCON_DB_HOST'] ?? '127.0.0.1',
   port: Number(process.env['ISUCON_DB_PORT'] ?? 3306),
