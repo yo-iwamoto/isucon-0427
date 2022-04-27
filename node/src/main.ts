@@ -376,52 +376,38 @@ async function getFavoritedPlaylistSummariesByUserAccount(
   userAccount: string
 ): Promise<Playlist[]> {
   const [playlistFavorites] = await db.query<PlaylistFavoriteRow[]>(
-    `SELECT
-      playlist.id AS playlist_id,
-      count(distinct playlist_favorite.id) AS favorite_count,
-      count(distinct playlist_song.song_id) AS song_count,
-      playlist.ulid,
-      playlist.name,
-      playlist.is_public,
-      playlist.created_at,
-      playlist.updated_at,
-      user.display_name AS user_display_name,
-      user.account AS user_account
-    FROM playlist
-      LEFT OUTER JOIN playlist_song ON playlist.id = playlist_song.playlist_id
-      INNER JOIN playlist_favorite ON playlist.id = playlist_favorite.playlist_id
-      INNER JOIN user ON playlist.user_account = user.account
-    WHERE
-      playlist.is_public = 1
-      AND user.is_ban = 0
-      AND playlist_favorite.favorite_user_account = ?
-    GROUP BY playlist_id
-    ORDER BY favorite_count DESC
-    LIMIT 100;
-    `,
+    'SELECT * FROM playlist_favorite where favorite_user_account = ? ORDER BY created_at DESC',
     [userAccount]
   );
+  const playlists: Playlist[] = [];
+  for (const fav of playlistFavorites) {
+    const playlist = await getPlaylistById(db, fav.playlist_id);
+    // 非公開は除外する
+    if (!playlist || !playlist.is_public) continue;
 
-  return Promise.all(
-    playlistFavorites.map(async (row) => ({
-      ulid: row.ulid,
-      name: row.name,
-      user_display_name: row.user_display_name,
-      user_account: row.user_account,
-      favorite_count: row.favorite_count,
-      song_count: row.song_count,
-      is_public: row.is_public,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      is_favorited: await db
-      .query<GetIsFavoritedRow[]>(
-        'SELECT count(*) FROM playlist_favorite WHERE playlist_id = ? AND favorite_user_account = ?',
-        [row.playlist_id, row.user_account]
-      )
-      .then(([[result]]) => result.count === 1)
-    }))
-  );
+    const user = await getUserByAccount(db, playlist.user_account);
+    // 作成したユーザーがbanされていたら除外する
+    if (!user || user.is_ban) continue;
 
+    const songCount = await getSongsCountByPlaylistId(db, playlist.id);
+    const favoriteCount = await getFavoritesCountByPlaylistId(db, playlist.id);
+    const isFavorited = await isFavoritedBy(db, userAccount, playlist.id);
+
+    playlists.push({
+      ulid: playlist.ulid,
+      name: playlist.name,
+      user_display_name: user.display_name,
+      user_account: user.account,
+      song_count: songCount,
+      favorite_count: favoriteCount,
+      is_favorited: isFavorited,
+      is_public: !!playlist.is_public,
+      created_at: playlist.created_at,
+      updated_at: playlist.updated_at,
+    });
+    if (playlists.length >= 100) break;
+  }
+  return playlists;
 }
 
 async function getPlaylistDetailByPlaylistUlid(
