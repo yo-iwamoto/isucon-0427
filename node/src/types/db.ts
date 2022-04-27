@@ -47,3 +47,20 @@ export type PlaylistFavoriteRow = RowDataPacket & {
   favorite_user_account: string;
   created_at: Date;
 };
+
+export type GetPopularPlaylistSummariesRow = RowDataPacket & {
+  playlist_id: number;
+  favorite_count: number;
+  song_count: number;
+  ulid: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+  is_public: boolean;
+  user_display_name: string;
+  user_account: string;
+};
+
+export type GetIsFavoritedRow = RowDataPacket & {
+  count: number;
+};
