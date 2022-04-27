@@ -203,11 +203,6 @@ async function getPlaylistByUlid(db: mysql.Connection, playlistUlid: string): Pr
   return row;
 }
 
-async function getPlaylistById(db: mysql.Connection, playlistId: number): Promise<PlaylistRow | undefined> {
-  const [[row]] = await db.query<PlaylistRow[]>('SELECT * FROM playlist WHERE `id` = ?', [playlistId]);
-  return row;
-}
-
 async function getSongByUlid(db: mysql.Connection, songUlid: string): Promise<SongRow | undefined> {
   const [[result]] = await db.query<SongRow[]>('SELECT * FROM song WHERE `ulid` = ?', [songUlid]);
   return result;
@@ -341,7 +336,7 @@ async function getCreatedPlaylistSummariesByUserAccount(
   userAccount: string
 ): Promise<Playlist[]> {
   const [playlists] = await db.query<PlaylistRow[]>(
-    'SELECT * FROM playlist where user_account = ? ORDER BY created_at DESC LIMIT 100',
+    'SELECT id, ulid, name, user_account, is_public, created_at, updated_at FROM playlist WHERE user_account = ? ORDER BY created_at DESC LIMIT 100',
     [userAccount]
   );
   if (!playlists.length) return [];
@@ -414,14 +409,13 @@ async function getFavoritedPlaylistSummariesByUserAccount(
       created_at: row.created_at,
       updated_at: row.updated_at,
       is_favorited: await db
-      .query<GetIsFavoritedRow[]>(
-        'SELECT count(*) FROM playlist_favorite WHERE playlist_id = ? AND favorite_user_account = ?',
-        [row.playlist_id, row.user_account]
-      )
-      .then(([[result]]) => result.count === 1)
+        .query<GetIsFavoritedRow[]>(
+          'SELECT count(*) FROM playlist_favorite WHERE playlist_id = ? AND favorite_user_account = ?',
+          [row.playlist_id, row.user_account]
+        )
+        .then(([[result]]) => result.count === 1),
     }))
   );
-
 }
 
 async function getPlaylistDetailByPlaylistUlid(
