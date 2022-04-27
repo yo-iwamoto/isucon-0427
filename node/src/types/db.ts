@@ -64,3 +64,16 @@ export type GetPopularPlaylistSummariesRow = RowDataPacket & {
 export type GetIsFavoritedRow = RowDataPacket & {
   count: number;
 };
+
+export type GetRecentPlaylistRow = RowDataPacket & {
+  playlist_id: number;
+  favorite_count: number;
+  song_count: number;
+  ulid: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+  is_public: boolean;
+  user_display_name: string;
+  user_account: string;
+};
