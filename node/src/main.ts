@@ -45,7 +45,6 @@ const pool = mysql.createPool(dbConfig)
 const sessionStore: session.Store = new mysqlSession({}, pool)
 
 const app = express()
-app.use('/assets', express.static(publicPath + '/assets'))
 app.use(express.json())
 app.use(session({
   name: sessionCookieName,
